@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import ThreatDashboard from '@/components/ThreatDashboard'
+import ThreatFeed from '@/components/ThreatFeed'
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
       </Head>
       <main>
         <ThreatDashboard />
+        <ThreatFeed /> {/* ✅ Add this line to render the data */}
       </main>
     </>
   )
