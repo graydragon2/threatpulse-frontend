@@ -7,7 +7,7 @@ export default function ThreatFeed() {
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/rss`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss`);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
         setFeed(data);
