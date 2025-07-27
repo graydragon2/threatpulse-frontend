@@ -1,37 +1,36 @@
+
 import { useEffect, useState } from 'react';
 
-export default function TopBar() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+export default function Topbar() {
+  const [status, setStatus] = useState<'online' | 'offline'>('offline');
 
   useEffect(() => {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark') {
-      document.documentElement.classList.add('dark');
-      setTheme('dark');
-    }
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/`);
+        if (res.ok) setStatus('online');
+        else setStatus('offline');
+      } catch {
+        setStatus('offline');
+      }
+    };
+
+    checkStatus();
+    const interval = setInterval(checkStatus, 15000); // Ping every 15s
+    return () => clearInterval(interval);
   }, []);
 
-  const toggleTheme = () => {
-    if (theme === 'dark') {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-      setTheme('light');
-    } else {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-      setTheme('dark');
-    }
-  };
-
   return (
-    <header className="flex justify-between items-center p-4 bg-white dark:bg-gray-900 shadow">
-      <h1 className="text-lg font-bold text-gray-800 dark:text-white">ThreatPulse</h1>
-      <button
-        onClick={toggleTheme}
-        className="px-3 py-1 text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded"
-      >
-        Toggle {theme === 'dark' ? 'Light' : 'Dark'} Mode
-      </button>
+    <header className="bg-gray-950 text-white px-4 py-3 flex justify-between items-center shadow">
+      <h1 className="text-xl font-bold">ThreatPulse</h1>
+      <div className="flex items-center gap-2">
+        <span
+          className={`w-3 h-3 rounded-full ${
+            status === 'online' ? 'bg-green-500' : 'bg-red-500'
+          }`}
+        ></span>
+        <span className="text-sm">{status === 'online' ? 'API Online' : 'API Offline'}</span>
+      </div>
     </header>
   );
 }

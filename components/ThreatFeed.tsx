@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 
 export default function ThreatFeed() {
@@ -7,12 +6,14 @@ export default function ThreatFeed() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [keywords, setKeywords] = useState('');
 
-  const fetchFeed = async (keywords = '', pageNum = 1) => {
+  const fetchFeed = async (kw = '', pageNum = 1) => {
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/rss?keywords=${keywords}&page=${pageNum}`
+        `${process.env.NEXT_PUBLIC_API_URL}/rss?keywords=${kw}&page=${pageNum}`
       );
       if (!res.ok) throw new Error('Network response was not ok');
       const data = await res.json();
@@ -28,12 +29,33 @@ export default function ThreatFeed() {
   };
 
   useEffect(() => {
-    fetchFeed('', page);
-  }, [page]);
+    fetchFeed(keywords, page);
+  }, [keywords, page]);
+
+  const handleSearch = () => {
+    setPage(1);
+    setKeywords(search.trim());
+  };
 
   return (
     <div className="p-4 bg-gray-900 rounded-lg shadow mt-4">
       <h2 className="text-white text-lg font-semibold mb-2">Threat Feed</h2>
+
+      <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Filter by keywords (e.g., cyber, attack)"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 p-2 rounded bg-gray-800 text-white border border-gray-600"
+        />
+        <button
+          onClick={handleSearch}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Search
+        </button>
+      </div>
 
       {loading ? (
         <div className="text-white animate-pulse">Loading feed...</div>
