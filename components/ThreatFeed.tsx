@@ -10,7 +10,7 @@ export default function ThreatFeed() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss`);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        setFeed(data);
+        setFeed(data.items || []); // ✅ FIXED HERE
       } catch (err: any) {
         setError(err.message || 'Failed to fetch');
       }
