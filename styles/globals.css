@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-white text-black dark:bg-gray-950 dark:text-white;
+/* Ensure dark mode transitions look good */
+html {
+  transition: background-color 0.3s, color 0.3s;
 }
