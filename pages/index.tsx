@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import Topbar from '@/components/Topbar';
+import Topbar from '@/components/TopBar';
 import ThreatDashboard from '@/components/ThreatDashboard';
 import ThreatFeed from '@/components/ThreatFeed';
 
