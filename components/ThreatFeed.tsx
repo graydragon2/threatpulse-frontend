@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 
 interface FeedItem {
@@ -19,6 +20,7 @@ interface FeedResponse {
 export default function ThreatFeed() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // 🆕 loading state
   const [keywords, setKeywords] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -28,6 +30,7 @@ export default function ThreatFeed() {
   useEffect(() => {
     const fetchFeed = async () => {
       try {
+        setLoading(true); // 🆕 start loading
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/rss?keywords=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
         );
@@ -37,6 +40,8 @@ export default function ThreatFeed() {
         setTotalPages(Math.ceil(data.total / limit));
       } catch (err: any) {
         setError(err.message || 'Failed to fetch');
+      } finally {
+        setLoading(false); // 🆕 stop loading
       }
     };
 
@@ -52,7 +57,6 @@ export default function ThreatFeed() {
   const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
   if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
-  if (!feed.length) return <div className="text-gray-400 p-4">Loading feed...</div>;
 
   return (
     <div className="p-4 bg-gray-800 rounded-lg mt-4">
@@ -73,49 +77,56 @@ export default function ThreatFeed() {
         </button>
       </div>
 
-      {/* Feed Items */}
-      <ul className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-        {feed.map((item, idx) => (
-          <li
-            key={idx}
-            className="p-4 bg-gray-700 rounded hover:bg-gray-600 transition cursor-pointer"
-          >
-            <a href={item.link} target="_blank" rel="noopener noreferrer">
-              <h3 className="text-lg font-semibold text-blue-300 hover:underline">
-                {item.title}
-              </h3>
-            </a>
-            <p className="text-sm text-gray-400 mt-1">
-              {item.pubDate && new Date(item.pubDate).toLocaleString()}
-              {item.creator ? ` — ${item.creator}` : ''}
-            </p>
-            {item.contentSnippet && (
-              <p className="text-gray-300 mt-2 text-sm">{item.contentSnippet}</p>
-            )}
-          </li>
-        ))}
-      </ul>
+      {/* Loading Spinner */}
+      {loading ? (
+        <div className="text-center text-blue-400 py-6 animate-pulse">Loading feed...</div>
+      ) : (
+        <>
+          {/* Feed Items */}
+          <ul className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+            {feed.map((item, idx) => (
+              <li
+                key={idx}
+                className="p-4 bg-gray-700 rounded hover:bg-gray-600 transition cursor-pointer"
+              >
+                <a href={item.link} target="_blank" rel="noopener noreferrer">
+                  <h3 className="text-lg font-semibold text-blue-300 hover:underline">
+                    {item.title}
+                  </h3>
+                </a>
+                <p className="text-sm text-gray-400 mt-1">
+                  {item.pubDate && new Date(item.pubDate).toLocaleString()}
+                  {item.creator ? ` — ${item.creator}` : ''}
+                </p>
+                {item.contentSnippet && (
+                  <p className="text-gray-300 mt-2 text-sm">{item.contentSnippet}</p>
+                )}
+              </li>
+            ))}
+          </ul>
 
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4 text-white">
-        <button
-          onClick={prevPage}
-          disabled={page === 1}
-          className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-        >
-          Previous
-        </button>
-        <span className="text-sm">
-          Page {page} of {totalPages}
-        </span>
-        <button
-          onClick={nextPage}
-          disabled={page === totalPages}
-          className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-        >
-          Next
-        </button>
-      </div>
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-4 text-white">
+            <button
+              onClick={prevPage}
+              disabled={page === 1}
+              className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              Previous
+            </button>
+            <span className="text-sm">
+              Page {page} of {totalPages}
+            </span>
+            <button
+              onClick={nextPage}
+              disabled={page === totalPages}
+              className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
