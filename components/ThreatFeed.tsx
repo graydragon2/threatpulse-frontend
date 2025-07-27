@@ -1,38 +1,62 @@
-
 import { useEffect, useState } from 'react';
 
+interface FeedItem {
+  title: string;
+  link: string;
+  pubDate?: string;
+  contentSnippet?: string;
+  creator?: string;
+}
+
+interface FeedResponse {
+  success: boolean;
+  items: FeedItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export default function ThreatFeed() {
-  const [feed, setFeed] = useState<any[]>([]);
+  const [feed, setFeed] = useState<FeedItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [keywords, setKeywords] = useState('');
   const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/rss?keywords=${encodeURIComponent(query)}`
+          `${process.env.NEXT_PUBLIC_API_URL}/rss?keywords=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
         );
         if (!res.ok) throw new Error('Network response was not ok');
-        const data = await res.json();
+        const data: FeedResponse = await res.json();
         setFeed(data.items || []);
+        setTotalPages(Math.ceil(data.total / limit));
       } catch (err: any) {
         setError(err.message || 'Failed to fetch');
       }
     };
 
     fetchFeed();
-  }, [query]);
+  }, [query, page]);
 
   const handleSearch = () => {
+    setPage(1);
     setQuery(keywords.trim());
   };
+
+  const nextPage = () => setPage((prev) => Math.min(prev + 1, totalPages));
+  const prevPage = () => setPage((prev) => Math.max(prev - 1, 1));
 
   if (error) return <div className="text-red-500 p-4">Error: {error}</div>;
   if (!feed.length) return <div className="text-gray-400 p-4">Loading feed...</div>;
 
   return (
     <div className="p-4 bg-gray-800 rounded-lg mt-4">
+      {/* Search */}
       <div className="flex items-center mb-4">
         <input
           type="text"
@@ -49,6 +73,7 @@ export default function ThreatFeed() {
         </button>
       </div>
 
+      {/* Feed Items */}
       <ul className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
         {feed.map((item, idx) => (
           <li
@@ -70,6 +95,27 @@ export default function ThreatFeed() {
           </li>
         ))}
       </ul>
+
+      {/* Pagination */}
+      <div className="flex justify-between items-center mt-4 text-white">
+        <button
+          onClick={prevPage}
+          disabled={page === 1}
+          className={`px-3 py-1 rounded ${page === 1 ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+          Previous
+        </button>
+        <span className="text-sm">
+          Page {page} of {totalPages}
+        </span>
+        <button
+          onClick={nextPage}
+          disabled={page === totalPages}
+          className={`px-3 py-1 rounded ${page === totalPages ? 'bg-gray-600 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
