@@ -10,7 +10,12 @@ export default function ThreatFeed() {
   const [riskFilter, setRiskFilter] = useState<'all' | 'highOnly' | 'excludeLow'>('all');
   const limit = 20;
 
-  // ⏳ Load riskFilter from localStorage on first render
+  const [riskCounts, setRiskCounts] = useState({
+    high: 0,
+    medium: 0,
+    low: 0,
+  });
+
   useEffect(() => {
     const storedFilter = localStorage.getItem('riskFilter');
     if (storedFilter === 'highOnly' || storedFilter === 'excludeLow' || storedFilter === 'all') {
@@ -18,12 +23,10 @@ export default function ThreatFeed() {
     }
   }, []);
 
-  // 💾 Save riskFilter to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('riskFilter', riskFilter);
   }, [riskFilter]);
 
-  // 🔁 Debounce keyword input
   useEffect(() => {
     const handler = setTimeout(() => {
       setPage(1);
@@ -32,7 +35,6 @@ export default function ThreatFeed() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // 📡 Fetch feed on change
   useEffect(() => {
     const fetchFeed = async () => {
       try {
@@ -45,12 +47,23 @@ export default function ThreatFeed() {
 
         let filteredItems = data.items;
 
+        // Risk-based filtering
         if (riskFilter === 'highOnly') {
           filteredItems = filteredItems.filter((item) => item.riskScore === 'high');
         } else if (riskFilter === 'excludeLow') {
           filteredItems = filteredItems.filter((item) => item.riskScore !== 'low');
         }
 
+        // Count risk levels in unfiltered set (not filtered by UI toggle)
+        const riskTally = { high: 0, medium: 0, low: 0 };
+        for (const item of data.items) {
+          const level = item.riskScore;
+          if (level === 'high') riskTally.high++;
+          else if (level === 'medium') riskTally.medium++;
+          else if (level === 'low') riskTally.low++;
+        }
+
+        setRiskCounts(riskTally);
         setFeed(filteredItems);
         setTotal(data.total);
       } catch (err: any) {
@@ -65,18 +78,18 @@ export default function ThreatFeed() {
 
   return (
     <div className="mt-6">
-      {/* 🔍 Search Input */}
+      {/* 🔍 Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Filter by keywords (e.g., cyber, malware)"
+          placeholder="Filter by keywords (e.g., cyber, attack, malware)"
           className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      {/* 🧠 Risk Filter Buttons */}
+      {/* ☢️ AI Risk Filter Buttons */}
       <div className="mb-4 flex gap-2 text-sm">
         <button
           onClick={() => setRiskFilter('highOnly')}
@@ -104,6 +117,18 @@ export default function ThreatFeed() {
         </button>
       </div>
 
+      {/* 📊 Summary Stats */}
+      <div className="mb-4 bg-gray-800 p-4 rounded text-white">
+        <div className="text-sm">Threat Summary (All pages):</div>
+        <ul className="text-xs mt-1 space-y-1">
+          <li>🧠 Total Fetched: {total}</li>
+          <li>🛑 High Risk: {riskCounts.high}</li>
+          <li>⚠ Medium Risk: {riskCounts.medium}</li>
+          <li>✅ Low Risk: {riskCounts.low}</li>
+        </ul>
+      </div>
+
+      {/* 📰 Threat List */}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!feed.length && !error && <div className="text-gray-400">No threats found.</div>}
 
@@ -122,6 +147,7 @@ export default function ThreatFeed() {
         ))}
       </ul>
 
+      {/* ⏩ Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
           <button
