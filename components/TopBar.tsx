@@ -1,36 +1,21 @@
-
-import { useEffect, useState } from 'react';
+// components/TopBar.tsx
 
 export default function Topbar() {
-  const [status, setStatus] = useState<'online' | 'offline'>('offline');
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/`);
-        if (res.ok) setStatus('online');
-        else setStatus('offline');
-      } catch {
-        setStatus('offline');
-      }
-    };
-
-    checkStatus();
-    const interval = setInterval(checkStatus, 15000); // Ping every 15s
-    return () => clearInterval(interval);
-  }, []);
-
   return (
-    <header className="bg-gray-950 text-white px-4 py-3 flex justify-between items-center shadow">
-      <h1 className="text-xl font-bold">ThreatPulse</h1>
-      <div className="flex items-center gap-2">
-        <span
-          className={`w-3 h-3 rounded-full ${
-            status === 'online' ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        ></span>
-        <span className="text-sm">{status === 'online' ? 'API Online' : 'API Offline'}</span>
-      </div>
+    <header className="flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <h1 className="text-lg font-bold text-gray-900 dark:text-white">ThreatPulse</h1>
+      <button
+        onClick={() => {
+          document.documentElement.classList.toggle('dark');
+          localStorage.setItem(
+            'theme',
+            document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+          );
+        }}
+        className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded text-sm text-gray-900 dark:text-white"
+      >
+        Toggle Theme
+      </button>
     </header>
   );
 }
