@@ -9,9 +9,10 @@ export default function ThreatFeed() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const limit = 20;
 
+  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
-      setPage(1); // Reset page on new search
+      setPage(1); // reset to first page on search change
       setDebouncedSearch(search);
     }, 500);
     return () => clearTimeout(handler);
@@ -42,21 +43,9 @@ export default function ThreatFeed() {
 
   const totalPages = Math.ceil(total / limit);
 
-  const getBadgeColor = (source: string) => {
-    switch (source.toLowerCase()) {
-      case 'cnn':
-        return 'bg-red-600';
-      case 'bbc':
-        return 'bg-blue-500';
-      case 'cisa':
-        return 'bg-yellow-600 text-black';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
   return (
-    <div className="mt-6">
+    <div className="mt-6 px-2">
+      {/* 🔍 Search Bar */}
       <div className="mb-4">
         <input
           type="text"
@@ -67,34 +56,47 @@ export default function ThreatFeed() {
         />
       </div>
 
+      {/* 🧠 Error or Loading */}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!feed.length && !error && <div className="text-gray-400">Loading feed...</div>}
 
-      <ul className="space-y-2">
+      {/* 📄 Feed Cards */}
+      <ul className="space-y-3">
         {feed.map((item, idx) => (
-          <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
-            <div className="flex justify-between items-start">
+          <li
+            key={idx}
+            className="p-4 bg-gray-700 rounded-md shadow hover:bg-gray-600 transition-all duration-200"
+          >
+            <div className="flex items-start justify-between">
               <a
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-300 hover:underline"
+                className="text-blue-300 font-semibold hover:underline"
               >
                 {item.title}
               </a>
-              {item.source && (
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 ml-2 rounded ${getBadgeColor(item.source)}`}
-                >
-                  {item.source.toUpperCase()}
-                </span>
+
+              {/* 📎 Source */}
+              {item.link?.includes('cisa.gov') && (
+                <span className="ml-2 px-2 py-1 text-xs rounded bg-yellow-600 text-white">CISA</span>
+              )}
+              {item.link?.includes('bbc.co.uk') && (
+                <span className="ml-2 px-2 py-1 text-xs rounded bg-blue-600 text-white">BBC</span>
+              )}
+              {item.link?.includes('cnn.com') && (
+                <span className="ml-2 px-2 py-1 text-xs rounded bg-red-600 text-white">CNN</span>
               )}
             </div>
-            <p className="text-sm text-gray-300">{item.pubDate}</p>
+            <p className="text-sm text-gray-300 mt-2">{item.pubDate}</p>
+            {item.contentSnippet && (
+              <p className="text-sm text-gray-400 mt-1 line-clamp-3">{item.contentSnippet}</p>
+            )}
           </li>
         ))}
       </ul>
 
+      {/* ⏮ Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
           <button
