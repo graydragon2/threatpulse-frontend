@@ -15,15 +15,12 @@ export default function ThreatDashboard() {
         } else {
           setApiStatus('offline');
         }
-      } catch (err) {
+      } catch (error) {
         setApiStatus('offline');
       }
     };
 
-    // Run immediately
     checkHealth();
-
-    // Re-check every 15 seconds
     const interval = setInterval(checkHealth, 15000);
     return () => clearInterval(interval);
   }, []);
@@ -47,4 +44,3 @@ export default function ThreatDashboard() {
     </div>
   );
 }
-
