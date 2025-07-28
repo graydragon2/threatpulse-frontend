@@ -10,7 +10,20 @@ export default function ThreatFeed() {
   const [riskFilter, setRiskFilter] = useState<'all' | 'highOnly' | 'excludeLow'>('all');
   const limit = 20;
 
-  // Debounce search
+  // ⏳ Load riskFilter from localStorage on first render
+  useEffect(() => {
+    const storedFilter = localStorage.getItem('riskFilter');
+    if (storedFilter === 'highOnly' || storedFilter === 'excludeLow' || storedFilter === 'all') {
+      setRiskFilter(storedFilter);
+    }
+  }, []);
+
+  // 💾 Save riskFilter to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('riskFilter', riskFilter);
+  }, [riskFilter]);
+
+  // 🔁 Debounce keyword input
   useEffect(() => {
     const handler = setTimeout(() => {
       setPage(1);
@@ -19,6 +32,7 @@ export default function ThreatFeed() {
     return () => clearTimeout(handler);
   }, [search]);
 
+  // 📡 Fetch feed on change
   useEffect(() => {
     const fetchFeed = async () => {
       try {
@@ -51,11 +65,11 @@ export default function ThreatFeed() {
 
   return (
     <div className="mt-6">
-      {/* 🔍 Keyword Search */}
+      {/* 🔍 Search Input */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Filter by keywords (e.g., malware, threat)"
+          placeholder="Filter by keywords (e.g., cyber, malware)"
           className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -101,7 +115,8 @@ export default function ThreatFeed() {
             </a>
             <p className="text-sm text-gray-300">{item.pubDate}</p>
             <p className="text-xs text-gray-400">
-              Source: {item.source || 'Unknown'} | Risk: <span className="font-bold capitalize">{item.riskScore}</span>
+              Source: {item.source || 'Unknown'} | Risk:{' '}
+              <span className="font-bold capitalize">{item.riskScore}</span>
             </p>
           </li>
         ))}
