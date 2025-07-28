@@ -9,15 +9,16 @@ export default function ThreatFeed() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const limit = 20;
 
-  // Debounce search input
+  // 🔁 Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
-      setPage(1); // reset to first page on search change
+      setPage(1);
       setDebouncedSearch(search);
     }, 500);
     return () => clearTimeout(handler);
   }, [search]);
 
+  // 🚀 Fetch feed when search or page changes
   useEffect(() => {
     const fetchFeed = async () => {
       try {
@@ -26,11 +27,9 @@ export default function ThreatFeed() {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-
         if (!data.success || !Array.isArray(data.items)) {
           throw new Error('Invalid response format');
         }
-
         setFeed(data.items);
         setTotal(data.total);
       } catch (err: any) {
@@ -44,23 +43,21 @@ export default function ThreatFeed() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="mt-6 px-2">
-      {/* 🔍 Search Bar */}
+    <div className="mt-6">
+      {/* 🔍 Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Filter by keywords (e.g., cyber, attack, malware)"
+          placeholder="Filter by keywords (e.g., cyber, malware, espionage)"
           className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      {/* 🧠 Error or Loading */}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!feed.length && !error && <div className="text-gray-400">Loading feed...</div>}
 
-      {/* 📄 Feed Cards */}
       <ul className="space-y-3">
         {feed.map((item, idx) => (
           <li
@@ -77,26 +74,37 @@ export default function ThreatFeed() {
                 {item.title}
               </a>
 
-              {/* 📎 Source */}
-              {item.link?.includes('cisa.gov') && (
-                <span className="ml-2 px-2 py-1 text-xs rounded bg-yellow-600 text-white">CISA</span>
-              )}
-              {item.link?.includes('bbc.co.uk') && (
-                <span className="ml-2 px-2 py-1 text-xs rounded bg-blue-600 text-white">BBC</span>
-              )}
-              {item.link?.includes('cnn.com') && (
-                <span className="ml-2 px-2 py-1 text-xs rounded bg-red-600 text-white">CNN</span>
-              )}
+              {/* 📎 Source Badge */}
+              <div className="flex-shrink-0 ml-2">
+                {item.link?.includes('cisa.gov') && (
+                  <span className="px-2 py-1 text-xs rounded bg-yellow-600 text-white">CISA</span>
+                )}
+                {item.link?.includes('bbc.co.uk') && (
+                  <span className="px-2 py-1 text-xs rounded bg-blue-600 text-white">BBC</span>
+                )}
+                {item.link?.includes('cnn.com') && (
+                  <span className="px-2 py-1 text-xs rounded bg-red-600 text-white">CNN</span>
+                )}
+              </div>
             </div>
+
             <p className="text-sm text-gray-300 mt-2">{item.pubDate}</p>
             {item.contentSnippet && (
               <p className="text-sm text-gray-400 mt-1 line-clamp-3">{item.contentSnippet}</p>
             )}
+
+            {/* 🔢 Threat Score (placeholder) */}
+            <div className="mt-3">
+              <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-yellow-500 text-black">
+                🟡 Medium Risk
+              </span>
+              <span className="text-xs text-gray-400 ml-2">(Placeholder AI Score)</span>
+            </div>
           </li>
         ))}
       </ul>
 
-      {/* ⏮ Pagination */}
+      {/* ⏩ Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
           <button
