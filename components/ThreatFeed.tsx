@@ -1,186 +1,91 @@
+// components/ThreatFeed.tsx
+
 import { useEffect, useState } from 'react';
 
 export default function ThreatFeed() {
-  const [feed, setFeed] = useState<any[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [riskFilter, setRiskFilter] = useState<'all' | 'highOnly' | 'excludeLow'>('all');
-  const limit = 20;
-
-  const [riskCounts, setRiskCounts] = useState({
-    high: 0,
-    medium: 0,
-    low: 0,
-  });
+  const [threats, setThreats] = useState([]);
+  const [keyword, setKeyword] = useState('');
+  const [highOnly, setHighOnly] = useState(false);
+  const [excludeLow, setExcludeLow] = useState(false);
 
   useEffect(() => {
-    const storedFilter = localStorage.getItem('riskFilter');
-    if (storedFilter === 'highOnly' || storedFilter === 'excludeLow' || storedFilter === 'all') {
-      setRiskFilter(storedFilter);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('riskFilter', riskFilter);
-  }, [riskFilter]);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setPage(1);
-      setDebouncedSearch(search);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [search]);
-
-  useEffect(() => {
-    const fetchFeed = async () => {
-      try {
-        const keywordParam = debouncedSearch.trim().split(/\s+/).join(',');
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/rss?page=${page}&limit=${limit}&keywords=${keywordParam}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('Network response was not ok');
-        const data = await res.json();
-        if (!data.success || !Array.isArray(data.items)) throw new Error('Invalid response format');
-
-        let filteredItems = data.items;
-
-        if (riskFilter === 'highOnly') {
-          filteredItems = filteredItems.filter((item) => item.riskScore === 'high');
-        } else if (riskFilter === 'excludeLow') {
-          filteredItems = filteredItems.filter((item) => item.riskScore !== 'low');
-        }
-
-        const riskTally = { high: 0, medium: 0, low: 0 };
-        for (const item of data.items) {
-          if (item.riskScore === 'high') riskTally.high++;
-          else if (item.riskScore === 'medium') riskTally.medium++;
-          else if (item.riskScore === 'low') riskTally.low++;
-        }
-
-        setRiskCounts(riskTally);
-        setFeed(filteredItems);
-        setTotal(data.total);
-      } catch (err: any) {
-        setError(err.message || 'Failed to fetch');
-      }
+    const fetchData = async () => {
+      const params = new URLSearchParams();
+      if (keyword) params.set('keywords', keyword);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
+      const data = await res.json();
+      setThreats(data.items || []);
     };
 
-    fetchFeed();
-  }, [page, debouncedSearch, riskFilter]);
+    fetchData();
+  }, [keyword]);
 
-  const totalPages = Math.ceil(total / limit);
+  const filtered = threats.filter(item => {
+    if (highOnly && item.threatLevel !== 'high') return false;
+    if (excludeLow && item.threatLevel === 'low') return false;
+    return true;
+  });
 
-  const getRiskColor = (risk: string) => {
-    if (risk === 'high') return 'bg-red-600';
-    if (risk === 'medium') return 'bg-yellow-500';
-    if (risk === 'low') return 'bg-green-500';
-    return 'bg-gray-400';
+  const countSummary = {
+    high: threats.filter(t => t.threatLevel === 'high').length,
+    medium: threats.filter(t => t.threatLevel === 'medium').length,
+    low: threats.filter(t => t.threatLevel === 'low').length,
   };
 
   return (
-    <div className="mt-6">
-      {/* Search */}
-      <div className="mb-4">
+    <div className="mt-4">
+      <div className="flex items-center gap-4 mb-4">
         <input
-          type="text"
+          className="px-3 py-1 rounded text-black"
           placeholder="Filter by keywords (e.g., cyber, attack, malware)"
-          className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
         />
-      </div>
-
-      {/* Filter Buttons */}
-      <div className="mb-4 flex gap-2 text-sm">
         <button
-          onClick={() => setRiskFilter('highOnly')}
-          className={`px-3 py-1 rounded ${
-            riskFilter === 'highOnly' ? 'bg-red-600 text-white' : 'bg-gray-600 text-gray-200'
+          onClick={() => setHighOnly(!highOnly)}
+          className={`px-3 py-1 rounded text-white ${
+            highOnly ? 'bg-red-600' : 'bg-gray-600'
           }`}
         >
-          🛑 High Risk Only
+          High Risk Only
         </button>
         <button
-          onClick={() => setRiskFilter('excludeLow')}
-          className={`px-3 py-1 rounded ${
-            riskFilter === 'excludeLow' ? 'bg-yellow-600 text-white' : 'bg-gray-600 text-gray-200'
+          onClick={() => setExcludeLow(!excludeLow)}
+          className={`px-3 py-1 rounded text-white ${
+            excludeLow ? 'bg-yellow-600' : 'bg-gray-600'
           }`}
         >
-          ⚠ Exclude Low Risk
+          Exclude Low Risk
         </button>
         <button
-          onClick={() => setRiskFilter('all')}
-          className={`px-3 py-1 rounded ${
-            riskFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-200'
-          }`}
+          onClick={() => {
+            setHighOnly(false);
+            setExcludeLow(false);
+            setKeyword('');
+          }}
+          className="px-3 py-1 rounded bg-blue-600 text-white"
         >
           🔄 Clear Filter
         </button>
       </div>
 
-      {/* Summary */}
-      <div className="mb-4 bg-gray-800 p-4 rounded text-white">
-        <div className="text-sm">Threat Summary (All pages):</div>
-        <ul className="text-xs mt-1 space-y-1">
-          <li>🧠 Total Fetched: {total}</li>
-          <li>🛑 High Risk: {riskCounts.high}</li>
-          <li>⚠ Medium Risk: {riskCounts.medium}</li>
-          <li>✅ Low Risk: {riskCounts.low}</li>
-        </ul>
+      <div className="bg-gray-700 p-4 rounded text-white text-sm mb-4">
+        <p className="font-semibold">Threat Summary (All pages):</p>
+        <p>Total Fetched: {threats.length}</p>
+        <p>🔴 High Risk: {countSummary.high}</p>
+        <p>🟠 Medium Risk: {countSummary.medium}</p>
+        <p>🟢 Low Risk: {countSummary.low}</p>
       </div>
 
-      {/* Threat List */}
-      {error && <div className="text-red-500">Error: {error}</div>}
-      {!feed.length && !error && <div className="text-gray-400">No threats found.</div>}
-
-      <ul className="space-y-2">
-        {feed.map((item, idx) => (
-          <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
-            <div className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${getRiskColor(item.riskScore)}`} />
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 hover:underline"
-              >
-                {item.title}
-              </a>
-            </div>
-            <p className="text-sm text-gray-300">{item.pubDate}</p>
-            <p className="text-xs text-gray-400">
-              Source: {item.source || 'Unknown'} | Risk:{' '}
-              <span className="font-bold capitalize">{item.riskScore}</span>
-            </p>
-          </li>
-        ))}
-      </ul>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-between items-center text-white">
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            className="px-3 py-1 bg-gray-600 rounded disabled:opacity-50"
-          >
-            ⬅ Prev
-          </button>
-          <span className="text-sm">
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-            disabled={page === totalPages}
-            className="px-3 py-1 bg-gray-600 rounded disabled:opacity-50"
-          >
-            Next ➡
-          </button>
+      {filtered.map((item, idx) => (
+        <div key={idx} className="mb-4 bg-gray-800 p-4 rounded">
+          <h3 className="text-white font-semibold">
+            <a href={item.link} target="_blank" rel="noopener noreferrer">{item.title}</a>
+          </h3>
+          <p className="text-gray-400 text-sm">{item.pubDate}</p>
+          <p className="text-gray-400 text-xs mt-1">Source: {item.source} | Risk: {item.threatLevel}</p>
         </div>
-      )}
+      ))}
     </div>
   );
 }
