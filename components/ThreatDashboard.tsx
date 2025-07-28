@@ -10,18 +10,22 @@ export default function ThreatDashboard() {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
         const data = await res.json();
-
         if (res.ok && data.status === 'ok') {
           setApiStatus('online');
         } else {
           setApiStatus('offline');
         }
-      } catch (error) {
+      } catch (err) {
         setApiStatus('offline');
       }
     };
 
+    // Run immediately
     checkHealth();
+
+    // Re-check every 15 seconds
+    const interval = setInterval(checkHealth, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -29,7 +33,7 @@ export default function ThreatDashboard() {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold text-white">Threat Dashboard</h2>
         <span
-          className={`text-sm px-2 py-1 rounded-full font-medium ${
+          className={`text-sm px-2 py-1 rounded-full font-semibold transition-all duration-200 ${
             apiStatus === 'online'
               ? 'bg-green-600 text-white'
               : 'bg-red-600 text-white'
@@ -43,3 +47,4 @@ export default function ThreatDashboard() {
     </div>
   );
 }
+
