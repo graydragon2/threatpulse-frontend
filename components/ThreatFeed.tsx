@@ -12,12 +12,15 @@ interface ThreatItem {
   threatLevel: 'high' | 'medium' | 'low';
 }
 
+const allSources = ['CNN', 'BBC', 'Reuters'];
+
 export default function ThreatFeed() {
   const [threats, setThreats] = useState<ThreatItem[]>([]);
   const [keywords, setKeywords] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [selectedSources, setSelectedSources] = useState<string[]>([...allSources]);
 
   const limit = 10;
 
@@ -28,6 +31,7 @@ export default function ThreatFeed() {
         keywords,
         page: String(page),
         limit: String(limit),
+        sources: selectedSources.join(','),
       });
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
       const data = await res.json();
@@ -52,8 +56,15 @@ export default function ThreatFeed() {
     fetchThreats();
   };
 
-  const totalPages = Math.ceil(total / limit);
+  const toggleSource = (source: string) => {
+    setSelectedSources(prev =>
+      prev.includes(source)
+        ? prev.filter(s => s !== source)
+        : [...prev, source]
+    );
+  };
 
+  const totalPages = Math.ceil(total / limit);
   const riskCounts = {
     high: threats.filter(t => t.threatLevel === 'high').length,
     medium: threats.filter(t => t.threatLevel === 'medium').length,
@@ -62,7 +73,8 @@ export default function ThreatFeed() {
 
   return (
     <div className="mt-6">
-      <div className="mb-4 flex gap-2">
+      {/* Filter Controls */}
+      <div className="mb-4 flex flex-col md:flex-row md:items-center gap-2">
         <input
           type="text"
           placeholder="Filter by keywords"
@@ -70,6 +82,19 @@ export default function ThreatFeed() {
           onChange={(e) => setKeywords(e.target.value)}
           className="px-3 py-1 border rounded w-full dark:bg-gray-700 dark:text-white"
         />
+        <div className="flex gap-2">
+          {allSources.map(source => (
+            <label key={source} className="text-sm text-white">
+              <input
+                type="checkbox"
+                checked={selectedSources.includes(source)}
+                onChange={() => toggleSource(source)}
+                className="mr-1"
+              />
+              {source}
+            </label>
+          ))}
+        </div>
         <button
           onClick={handleSearch}
           className="bg-blue-600 text-white px-4 py-1 rounded"
@@ -78,6 +103,7 @@ export default function ThreatFeed() {
         </button>
       </div>
 
+      {/* Summary */}
       <div className="text-sm text-gray-300 mb-2">
         <strong>Threat Summary (All pages):</strong><br />
         Total Fetched: {total} |
@@ -86,6 +112,7 @@ export default function ThreatFeed() {
         Low Risk: <span className="text-green-400">{riskCounts.low}</span>
       </div>
 
+      {/* Feed Results */}
       {loading ? (
         <p className="text-gray-400">Loading...</p>
       ) : (
@@ -130,3 +157,4 @@ export default function ThreatFeed() {
     </div>
   );
 }
+
