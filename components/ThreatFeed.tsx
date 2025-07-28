@@ -7,9 +7,10 @@ export default function ThreatFeed() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [riskFilter, setRiskFilter] = useState<'all' | 'highOnly' | 'excludeLow'>('all');
   const limit = 20;
 
-  // 🔁 Debounce search input
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setPage(1);
@@ -18,7 +19,6 @@ export default function ThreatFeed() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  // 🚀 Fetch feed when search or page changes
   useEffect(() => {
     const fetchFeed = async () => {
       try {
@@ -27,10 +27,17 @@ export default function ThreatFeed() {
         const res = await fetch(url);
         if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
-        if (!data.success || !Array.isArray(data.items)) {
-          throw new Error('Invalid response format');
+        if (!data.success || !Array.isArray(data.items)) throw new Error('Invalid response format');
+
+        let filteredItems = data.items;
+
+        if (riskFilter === 'highOnly') {
+          filteredItems = filteredItems.filter((item) => item.riskScore === 'high');
+        } else if (riskFilter === 'excludeLow') {
+          filteredItems = filteredItems.filter((item) => item.riskScore !== 'low');
         }
-        setFeed(data.items);
+
+        setFeed(filteredItems);
         setTotal(data.total);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch');
@@ -38,73 +45,68 @@ export default function ThreatFeed() {
     };
 
     fetchFeed();
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, riskFilter]);
 
   const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="mt-6">
-      {/* 🔍 Search */}
+      {/* 🔍 Keyword Search */}
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Filter by keywords (e.g., cyber, malware, espionage)"
+          placeholder="Filter by keywords (e.g., malware, threat)"
           className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
+      {/* 🧠 Risk Filter Buttons */}
+      <div className="mb-4 flex gap-2 text-sm">
+        <button
+          onClick={() => setRiskFilter('highOnly')}
+          className={`px-3 py-1 rounded ${
+            riskFilter === 'highOnly' ? 'bg-red-600 text-white' : 'bg-gray-600 text-gray-200'
+          }`}
+        >
+          🛑 High Risk Only
+        </button>
+        <button
+          onClick={() => setRiskFilter('excludeLow')}
+          className={`px-3 py-1 rounded ${
+            riskFilter === 'excludeLow' ? 'bg-yellow-600 text-white' : 'bg-gray-600 text-gray-200'
+          }`}
+        >
+          ⚠ Exclude Low Risk
+        </button>
+        <button
+          onClick={() => setRiskFilter('all')}
+          className={`px-3 py-1 rounded ${
+            riskFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-200'
+          }`}
+        >
+          🔄 Clear Filter
+        </button>
+      </div>
+
       {error && <div className="text-red-500">Error: {error}</div>}
-      {!feed.length && !error && <div className="text-gray-400">Loading feed...</div>}
+      {!feed.length && !error && <div className="text-gray-400">No threats found.</div>}
 
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {feed.map((item, idx) => (
-          <li
-            key={idx}
-            className="p-4 bg-gray-700 rounded-md shadow hover:bg-gray-600 transition-all duration-200"
-          >
-            <div className="flex items-start justify-between">
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-300 font-semibold hover:underline"
-              >
-                {item.title}
-              </a>
-
-              {/* 📎 Source Badge */}
-              <div className="flex-shrink-0 ml-2">
-                {item.link?.includes('cisa.gov') && (
-                  <span className="px-2 py-1 text-xs rounded bg-yellow-600 text-white">CISA</span>
-                )}
-                {item.link?.includes('bbc.co.uk') && (
-                  <span className="px-2 py-1 text-xs rounded bg-blue-600 text-white">BBC</span>
-                )}
-                {item.link?.includes('cnn.com') && (
-                  <span className="px-2 py-1 text-xs rounded bg-red-600 text-white">CNN</span>
-                )}
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-300 mt-2">{item.pubDate}</p>
-            {item.contentSnippet && (
-              <p className="text-sm text-gray-400 mt-1 line-clamp-3">{item.contentSnippet}</p>
-            )}
-
-            {/* 🔢 Threat Score (placeholder) */}
-            <div className="mt-3">
-              <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-yellow-500 text-black">
-                🟡 Medium Risk
-              </span>
-              <span className="text-xs text-gray-400 ml-2">(Placeholder AI Score)</span>
-            </div>
+          <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
+            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">
+              {item.title}
+            </a>
+            <p className="text-sm text-gray-300">{item.pubDate}</p>
+            <p className="text-xs text-gray-400">
+              Source: {item.source || 'Unknown'} | Risk: <span className="font-bold capitalize">{item.riskScore}</span>
+            </p>
           </li>
         ))}
       </ul>
 
-      {/* ⏩ Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
           <button
@@ -114,11 +116,9 @@ export default function ThreatFeed() {
           >
             ⬅ Prev
           </button>
-
           <span className="text-sm">
             Page {page} of {totalPages}
           </span>
-
           <button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages}
