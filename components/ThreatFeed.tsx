@@ -60,15 +60,19 @@ export default function ThreatFeed() {
       {!feed.length && !error && <div className="text-gray-400">Loading feed...</div>}
 
       <ul className="space-y-2">
-        {feed.map((item, idx) => (
-          <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
-            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">
-              {item.title}
-            </a>
-            <p className="text-sm text-gray-300">{item.pubDate}</p>
-          </li>
-        ))}
-      </ul>
+  {feed.map((item, idx) => (
+    <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
+      <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">
+        {item.title}
+      </a>
+      <div className="text-sm text-gray-400 flex gap-3 mt-1">
+        {item.source && <span className="bg-gray-800 text-indigo-300 px-2 py-0.5 rounded-full text-xs">{item.source}</span>}
+        <span>{item.pubDate}</span>
+      </div>
+    </li>
+  ))}
+</ul>
+
 
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
