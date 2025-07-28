@@ -9,10 +9,9 @@ export default function ThreatFeed() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const limit = 20;
 
-  // Debounce the search term
   useEffect(() => {
     const handler = setTimeout(() => {
-      setPage(1); // reset to first page on new search
+      setPage(1); // Reset page on new search
       setDebouncedSearch(search);
     }, 500);
     return () => clearTimeout(handler);
@@ -43,9 +42,21 @@ export default function ThreatFeed() {
 
   const totalPages = Math.ceil(total / limit);
 
+  const getBadgeColor = (source: string) => {
+    switch (source.toLowerCase()) {
+      case 'cnn':
+        return 'bg-red-600';
+      case 'bbc':
+        return 'bg-blue-500';
+      case 'cisa':
+        return 'bg-yellow-600 text-black';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <div className="mt-6">
-      {/* 🔍 Search Input */}
       <div className="mb-4">
         <input
           type="text"
@@ -60,19 +71,29 @@ export default function ThreatFeed() {
       {!feed.length && !error && <div className="text-gray-400">Loading feed...</div>}
 
       <ul className="space-y-2">
-  {feed.map((item, idx) => (
-    <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
-      <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">
-        {item.title}
-      </a>
-      <div className="text-sm text-gray-400 flex gap-3 mt-1">
-        {item.source && <span className="bg-gray-800 text-indigo-300 px-2 py-0.5 rounded-full text-xs">{item.source}</span>}
-        <span>{item.pubDate}</span>
-      </div>
-    </li>
-  ))}
-</ul>
-
+        {feed.map((item, idx) => (
+          <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
+            <div className="flex justify-between items-start">
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-300 hover:underline"
+              >
+                {item.title}
+              </a>
+              {item.source && (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 ml-2 rounded ${getBadgeColor(item.source)}`}
+                >
+                  {item.source.toUpperCase()}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-gray-300">{item.pubDate}</p>
+          </li>
+        ))}
+      </ul>
 
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
