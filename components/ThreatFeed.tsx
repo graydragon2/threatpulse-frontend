@@ -1,89 +1,99 @@
 // components/ThreatFeed.tsx
-
 import { useEffect, useState } from 'react';
 
+interface ThreatItem {
+  title: string;
+  link: string;
+  contentSnippet: string;
+  pubDate: string;
+  source: string;
+  threatScore: number;
+  threatLevel: 'low' | 'medium' | 'high';
+}
+
 export default function ThreatFeed() {
-  const [threats, setThreats] = useState([]);
-  const [keyword, setKeyword] = useState('');
-  const [highOnly, setHighOnly] = useState(false);
-  const [excludeLow, setExcludeLow] = useState(false);
+  const [items, setItems] = useState<ThreatItem[]>([]);
+  const [keywords, setKeywords] = useState('');
+  const [filter, setFilter] = useState<'all' | 'high' | 'exclude-low'>('all');
+  const [apiStatus, setApiStatus] = useState<'online' | 'offline'>('offline');
 
   useEffect(() => {
-    const fetchData = async () => {
-      const params = new URLSearchParams();
-      if (keyword) params.set('keywords', keyword);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
-      const data = await res.json();
-      setThreats(data.items || []);
+    const fetchThreats = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (keywords) params.append('keywords', keywords);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params.toString()}`);
+        const data = await res.json();
+        if (res.ok) {
+          setItems(data.items);
+          setApiStatus('online');
+        } else {
+          setApiStatus('offline');
+        }
+      } catch {
+        setApiStatus('offline');
+      }
     };
+    fetchThreats();
+  }, [keywords]);
 
-    fetchData();
-  }, [keyword]);
-
-  const filtered = threats.filter(item => {
-    if (highOnly && item.threatLevel !== 'high') return false;
-    if (excludeLow && item.threatLevel === 'low') return false;
+  const filteredItems = items.filter(item => {
+    if (filter === 'high') return item.threatLevel === 'high';
+    if (filter === 'exclude-low') return item.threatLevel !== 'low';
     return true;
   });
 
-  const countSummary = {
-    high: threats.filter(t => t.threatLevel === 'high').length,
-    medium: threats.filter(t => t.threatLevel === 'medium').length,
-    low: threats.filter(t => t.threatLevel === 'low').length,
-  };
+  const countByLevel = (level: 'low' | 'medium' | 'high') =>
+    items.filter(item => item.threatLevel === level).length;
 
   return (
-    <div className="mt-4">
-      <div className="flex items-center gap-4 mb-4">
+    <div className="mt-6">
+      <div className="flex items-center justify-between mb-2">
         <input
-          className="px-3 py-1 rounded text-black"
+          type="text"
           placeholder="Filter by keywords (e.g., cyber, attack, malware)"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          className="w-full p-2 rounded bg-gray-700 text-white mr-2"
+          value={keywords}
+          onChange={e => setKeywords(e.target.value)}
         />
-        <button
-          onClick={() => setHighOnly(!highOnly)}
-          className={`px-3 py-1 rounded text-white ${
-            highOnly ? 'bg-red-600' : 'bg-gray-600'
-          }`}
-        >
-          High Risk Only
-        </button>
-        <button
-          onClick={() => setExcludeLow(!excludeLow)}
-          className={`px-3 py-1 rounded text-white ${
-            excludeLow ? 'bg-yellow-600' : 'bg-gray-600'
-          }`}
-        >
-          Exclude Low Risk
-        </button>
-        <button
-          onClick={() => {
-            setHighOnly(false);
-            setExcludeLow(false);
-            setKeyword('');
-          }}
-          className="px-3 py-1 rounded bg-blue-600 text-white"
-        >
-          🔄 Clear Filter
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilter('high')}
+            className="px-2 py-1 text-xs bg-red-600 text-white rounded"
+          >
+            High Risk Only
+          </button>
+          <button
+            onClick={() => setFilter('exclude-low')}
+            className="px-2 py-1 text-xs bg-yellow-500 text-white rounded"
+          >
+            Exclude Low Risk
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className="px-2 py-1 text-xs bg-blue-500 text-white rounded"
+          >
+            🔄 Clear Filter
+          </button>
+        </div>
       </div>
 
-      <div className="bg-gray-700 p-4 rounded text-white text-sm mb-4">
-        <p className="font-semibold">Threat Summary (All pages):</p>
-        <p>Total Fetched: {threats.length}</p>
-        <p>🔴 High Risk: {countSummary.high}</p>
-        <p>🟠 Medium Risk: {countSummary.medium}</p>
-        <p>🟢 Low Risk: {countSummary.low}</p>
+      <div className="text-gray-300 text-sm mt-2 mb-4">
+        <strong>Threat Summary (All pages):</strong>
+        <div>Total Fetched: {items.length}</div>
+        <div>🔴 High Risk: {countByLevel('high')}</div>
+        <div>🟠 Medium Risk: {countByLevel('medium')}</div>
+        <div>🟢 Low Risk: {countByLevel('low')}</div>
       </div>
 
-      {filtered.map((item, idx) => (
-        <div key={idx} className="mb-4 bg-gray-800 p-4 rounded">
-          <h3 className="text-white font-semibold">
-            <a href={item.link} target="_blank" rel="noopener noreferrer">{item.title}</a>
-          </h3>
-          <p className="text-gray-400 text-sm">{item.pubDate}</p>
-          <p className="text-gray-400 text-xs mt-1">Source: {item.source} | Risk: {item.threatLevel}</p>
+      {filteredItems.map((item, index) => (
+        <div key={index} className="mb-4 p-4 rounded bg-gray-700 shadow">
+          <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-blue-400 hover:underline">
+            {item.title}
+          </a>
+          <div className="text-sm text-gray-300 mt-1">{item.contentSnippet}</div>
+          <div className="text-xs text-gray-400 mt-1">{new Date(item.pubDate).toUTCString()}</div>
+          <div className="text-xs text-gray-400 mt-1">Source: {item.source} | Risk: {item.threatLevel}</div>
         </div>
       ))}
     </div>
