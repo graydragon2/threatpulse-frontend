@@ -15,7 +15,6 @@ export default function ThreatFeed() {
   const [items, setItems] = useState<ThreatItem[]>([]);
   const [keywords, setKeywords] = useState('');
   const [filter, setFilter] = useState<'all' | 'high' | 'exclude-low'>('all');
-  const [apiStatus, setApiStatus] = useState<'online' | 'offline'>('offline');
 
   useEffect(() => {
     const fetchThreats = async () => {
@@ -26,12 +25,9 @@ export default function ThreatFeed() {
         const data = await res.json();
         if (res.ok) {
           setItems(data.items);
-          setApiStatus('online');
-        } else {
-          setApiStatus('offline');
         }
-      } catch {
-        setApiStatus('offline');
+      } catch (err) {
+        console.error('Error fetching threats:', err);
       }
     };
     fetchThreats();
@@ -86,16 +82,28 @@ export default function ThreatFeed() {
         <div>🟢 Low Risk: {countByLevel('low')}</div>
       </div>
 
-      {filteredItems.map((item, index) => (
-        <div key={index} className="mb-4 p-4 rounded bg-gray-700 shadow">
-          <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-blue-400 hover:underline">
-            {item.title}
-          </a>
-          <div className="text-sm text-gray-300 mt-1">{item.contentSnippet}</div>
-          <div className="text-xs text-gray-400 mt-1">{new Date(item.pubDate).toUTCString()}</div>
-          <div className="text-xs text-gray-400 mt-1">Source: {item.source} | Risk: {item.threatLevel}</div>
-        </div>
-      ))}
+      {filteredItems.map((item, index) => {
+        let dateStr = 'Invalid Date';
+        try {
+          const parsed = new Date(item.pubDate);
+          if (!isNaN(parsed.getTime())) {
+            dateStr = parsed.toUTCString();
+          }
+        } catch {
+          dateStr = 'Invalid Date';
+        }
+
+        return (
+          <div key={index} className="mb-4 p-4 rounded bg-gray-700 shadow">
+            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-lg font-semibold text-blue-400 hover:underline">
+              {item.title}
+            </a>
+            <div className="text-sm text-gray-300 mt-1">{item.contentSnippet}</div>
+            <div className="text-xs text-gray-400 mt-1">{dateStr}</div>
+            <div className="text-xs text-gray-400 mt-1">Source: {item.source} | Risk: {item.threatLevel}</div>
+          </div>
+        );
+      })}
     </div>
   );
 }
