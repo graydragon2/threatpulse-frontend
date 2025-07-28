@@ -47,20 +47,17 @@ export default function ThreatFeed() {
 
         let filteredItems = data.items;
 
-        // Risk-based filtering
         if (riskFilter === 'highOnly') {
           filteredItems = filteredItems.filter((item) => item.riskScore === 'high');
         } else if (riskFilter === 'excludeLow') {
           filteredItems = filteredItems.filter((item) => item.riskScore !== 'low');
         }
 
-        // Count risk levels in unfiltered set (not filtered by UI toggle)
         const riskTally = { high: 0, medium: 0, low: 0 };
         for (const item of data.items) {
-          const level = item.riskScore;
-          if (level === 'high') riskTally.high++;
-          else if (level === 'medium') riskTally.medium++;
-          else if (level === 'low') riskTally.low++;
+          if (item.riskScore === 'high') riskTally.high++;
+          else if (item.riskScore === 'medium') riskTally.medium++;
+          else if (item.riskScore === 'low') riskTally.low++;
         }
 
         setRiskCounts(riskTally);
@@ -76,9 +73,16 @@ export default function ThreatFeed() {
 
   const totalPages = Math.ceil(total / limit);
 
+  const getRiskColor = (risk: string) => {
+    if (risk === 'high') return 'bg-red-600';
+    if (risk === 'medium') return 'bg-yellow-500';
+    if (risk === 'low') return 'bg-green-500';
+    return 'bg-gray-400';
+  };
+
   return (
     <div className="mt-6">
-      {/* 🔍 Search */}
+      {/* Search */}
       <div className="mb-4">
         <input
           type="text"
@@ -89,7 +93,7 @@ export default function ThreatFeed() {
         />
       </div>
 
-      {/* ☢️ AI Risk Filter Buttons */}
+      {/* Filter Buttons */}
       <div className="mb-4 flex gap-2 text-sm">
         <button
           onClick={() => setRiskFilter('highOnly')}
@@ -117,7 +121,7 @@ export default function ThreatFeed() {
         </button>
       </div>
 
-      {/* 📊 Summary Stats */}
+      {/* Summary */}
       <div className="mb-4 bg-gray-800 p-4 rounded text-white">
         <div className="text-sm">Threat Summary (All pages):</div>
         <ul className="text-xs mt-1 space-y-1">
@@ -128,16 +132,24 @@ export default function ThreatFeed() {
         </ul>
       </div>
 
-      {/* 📰 Threat List */}
+      {/* Threat List */}
       {error && <div className="text-red-500">Error: {error}</div>}
       {!feed.length && !error && <div className="text-gray-400">No threats found.</div>}
 
       <ul className="space-y-2">
         {feed.map((item, idx) => (
           <li key={idx} className="p-3 bg-gray-700 rounded-md shadow">
-            <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:underline">
-              {item.title}
-            </a>
+            <div className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${getRiskColor(item.riskScore)}`} />
+              <a
+                href={item.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-300 hover:underline"
+              >
+                {item.title}
+              </a>
+            </div>
             <p className="text-sm text-gray-300">{item.pubDate}</p>
             <p className="text-xs text-gray-400">
               Source: {item.source || 'Unknown'} | Risk:{' '}
@@ -147,7 +159,7 @@ export default function ThreatFeed() {
         ))}
       </ul>
 
-      {/* ⏩ Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-between items-center text-white">
           <button
