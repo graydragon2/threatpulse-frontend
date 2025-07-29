@@ -15,7 +15,8 @@ interface ThreatItem {
 export default function ThreatFeed() {
   const [threats, setThreats] = useState<ThreatItem[]>([]);
   const [keywords, setKeywords] = useState('');
-  const [sources, setSources] = useState<string[]>([]);
+  const [sources, setSources] = useState<string[]>(['CNN', 'BBC', 'Reuters']);
+  const [riskFilter, setRiskFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [page, setPage] = useState(1);
@@ -33,15 +34,9 @@ export default function ThreatFeed() {
         limit: String(limit),
       });
 
-      if (sources.length > 0) {
-        params.append('sources', sources.join(','));
-      }
-      if (startDate) {
-        params.append('startDate', startDate);
-      }
-      if (endDate) {
-        params.append('endDate', endDate);
-      }
+      sources.forEach(src => params.append('sources', src));
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
       const data = await res.json();
@@ -59,7 +54,7 @@ export default function ThreatFeed() {
 
   useEffect(() => {
     fetchThreats();
-  }, [page]);
+  }, [page, sources]);
 
   const handleSearch = () => {
     setPage(1);
@@ -74,6 +69,10 @@ export default function ThreatFeed() {
 
   const totalPages = Math.ceil(total / limit);
 
+  const filteredThreats = riskFilter === 'all'
+    ? threats
+    : threats.filter(t => t.threatLevel === riskFilter);
+
   const riskCounts = {
     high: threats.filter(t => t.threatLevel === 'high').length,
     medium: threats.filter(t => t.threatLevel === 'medium').length,
@@ -82,53 +81,66 @@ export default function ThreatFeed() {
 
   return (
     <div className="mt-6">
-      <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mb-4 flex gap-2 flex-wrap">
         <input
           type="text"
           placeholder="Filter by keywords"
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
-          className="px-3 py-2 border rounded dark:bg-gray-700 dark:text-white"
+          className="px-3 py-1 border rounded w-full md:w-64 dark:bg-gray-700 dark:text-white"
         />
-
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-300">From:</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="px-2 py-1 rounded dark:bg-gray-700 dark:text-white"
-          />
-          <label className="text-sm text-gray-300">To:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="px-2 py-1 rounded dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {['CNN', 'BBC', 'Reuters'].map(source => (
-          <button
-            key={source}
-            onClick={() => toggleSource(source)}
-            className={`px-3 py-1 rounded ${
-              sources.includes(source)
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-600 text-gray-200'
-            }`}
-          >
-            {source}
-          </button>
-        ))}
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="px-3 py-1 border rounded dark:bg-gray-700 dark:text-white"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="px-3 py-1 border rounded dark:bg-gray-700 dark:text-white"
+        />
+        <button
+          onClick={() => { setStartDate(''); setEndDate(''); fetchThreats(); }}
+          className="bg-gray-600 text-white px-3 py-1 rounded"
+        >
+          Clear Dates
+        </button>
         <button
           onClick={handleSearch}
-          className="ml-auto bg-green-600 text-white px-4 py-1 rounded"
+          className="bg-blue-600 text-white px-4 py-1 rounded"
         >
           Search
         </button>
+      </div>
+
+      <div className="flex gap-4 mb-4 flex-wrap">
+        {['CNN', 'BBC', 'Reuters'].map(source => (
+          <label key={source} className="text-white text-sm">
+            <input
+              type="checkbox"
+              checked={sources.includes(source)}
+              onChange={() => toggleSource(source)}
+              className="mr-1"
+            />
+            {source}
+          </label>
+        ))}
+
+        <label className="text-white text-sm ml-4">
+          Risk Filter:
+          <select
+            value={riskFilter}
+            onChange={(e) => setRiskFilter(e.target.value)}
+            className="ml-2 px-2 py-1 rounded dark:bg-gray-700 dark:text-white"
+          >
+            <option value="all">All</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
       </div>
 
       <div className="text-sm text-gray-300 mb-2">
@@ -142,7 +154,7 @@ export default function ThreatFeed() {
       {loading ? (
         <p className="text-gray-400">Loading...</p>
       ) : (
-        threats.map((item, idx) => (
+        filteredThreats.map((item, idx) => (
           <div key={idx} className="mb-4 p-3 border border-gray-600 rounded bg-gray-800">
             <h3 className="text-lg font-semibold text-blue-300">
               <a href={item.link} target="_blank" rel="noopener noreferrer">{item.title}</a>
@@ -150,12 +162,10 @@ export default function ThreatFeed() {
             <p className="text-sm text-gray-400">{item.pubDate}</p>
             <p className="text-sm text-gray-300 mt-1">{item.contentSnippet}</p>
             <div className="text-xs text-gray-500 mt-1">
-              Source: {item.source} | Risk:{' '}
-              <span className={
+              Source: {item.source} | Risk: <span className={
                 item.threatLevel === 'high' ? 'text-red-500' :
                 item.threatLevel === 'medium' ? 'text-yellow-400' :
-                'text-green-400'
-              }>
+                'text-green-400'}>
                 {item.threatLevel}
               </span>
             </div>
