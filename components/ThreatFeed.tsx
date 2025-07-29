@@ -30,7 +30,6 @@ export default function ThreatFeed() {
         page: String(page),
         limit: String(limit),
       });
-
       sources.forEach(src => params.append('sources', src));
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
@@ -154,6 +153,3 @@ export default function ThreatFeed() {
     </div>
   );
 }
-
-
-
