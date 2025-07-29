@@ -162,6 +162,15 @@ export default function ThreatFeed() {
         Low Risk: <span className="text-green-400">{riskCounts.low}</span>
       </div>
 
+      <ThreatFeedExportButtons
+        keywords={keywords}
+        sources={sources}
+        startDate={startDate}
+        endDate={endDate}
+        riskFilter={riskFilter}
+      />
+
+
       {loading ? (
         <p className="text-gray-400">Loading...</p>
       ) : (
