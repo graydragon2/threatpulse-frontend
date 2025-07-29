@@ -1,6 +1,7 @@
 // components/ThreatFeed.tsx
 
 import { useEffect, useState } from 'react';
+import ThreatFeedExportButtons from './ThreatFeedExportButtons';
 
 interface ThreatItem {
   title: string;
@@ -143,6 +144,16 @@ export default function ThreatFeed() {
         </label>
       </div>
 
+      <ThreatFeedExportButtons
+        filters={{
+          keywords,
+          sources,
+          riskLevel: riskFilter,
+          startDate,
+          endDate,
+        }}
+      />
+
       <div className="text-sm text-gray-300 mb-2">
         <strong>Threat Summary (All pages):</strong><br />
         Total Fetched: {total} |
@@ -195,4 +206,5 @@ export default function ThreatFeed() {
     </div>
   );
 }
+
 
