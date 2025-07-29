@@ -1,48 +1,53 @@
+// components/ThreatFeedExportButtons.tsx
+
 import React from 'react';
 
-export interface ExportProps {
-  filters: {
-    keywords: string;
-    sources: string[];
-    riskLevel: string;
-    startDate: string;
-    endDate: string;
-  };
+interface ExportProps {
+  keywords: string;
+  sources: string[];
+  startDate: string;
+  endDate: string;
+  riskFilter: string;
+  tags: string;
 }
 
-const ThreatFeedExportButtons: React.FC<ExportProps> = ({ filters }) => {
-  const buildQueryString = () => {
-    const params = new URLSearchParams();
-    if (filters.keywords) params.append('keywords', filters.keywords);
-    if (filters.sources.length > 0) filters.sources.forEach(src => params.append('sources', src));
-    if (filters.riskLevel !== 'all') params.append('riskLevel', filters.riskLevel);
-    if (filters.startDate) params.append('startDate', filters.startDate);
-    if (filters.endDate) params.append('endDate', filters.endDate);
-    return params.toString();
-  };
+export default function ThreatFeedExportButtons({
+  keywords,
+  sources,
+  startDate,
+  endDate,
+  riskFilter,
+  tags,
+}: ExportProps) {
+  const params = new URLSearchParams();
+  if (keywords) params.append('keywords', keywords);
+  sources.forEach(source => params.append('sources', source));
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  if (riskFilter && riskFilter !== 'all') params.append('riskLevel', riskFilter);
+  if (tags) params.append('tags', tags);
 
-  const downloadFile = (format: 'csv' | 'pdf') => {
-    const query = buildQueryString();
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/export/${format}?${query}`;
-    window.open(url, '_blank');
-  };
+  const csvUrl = `${process.env.NEXT_PUBLIC_API_URL}/export/csv?${params.toString()}`;
+  const pdfUrl = `${process.env.NEXT_PUBLIC_API_URL}/export/pdf?${params.toString()}`;
 
   return (
-    <div className="mb-4 flex gap-2">
-      <button
-        onClick={() => downloadFile('csv')}
-        className="bg-green-700 text-white px-4 py-1 rounded hover:bg-green-800"
+    <div className="flex gap-4 mb-4">
+      <a
+        href={csvUrl}
+        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        target="_blank"
+        rel="noopener noreferrer"
       >
         Export CSV
-      </button>
-      <button
-        onClick={() => downloadFile('pdf')}
-        className="bg-purple-700 text-white px-4 py-1 rounded hover:bg-purple-800"
+      </a>
+      <a
+        href={pdfUrl}
+        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+        target="_blank"
+        rel="noopener noreferrer"
       >
         Export PDF
-      </button>
+      </a>
     </div>
   );
-};
-
-export default ThreatFeedExportButtons;
+}
