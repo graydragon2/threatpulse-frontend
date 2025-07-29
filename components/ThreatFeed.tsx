@@ -163,12 +163,15 @@ export default function ThreatFeed() {
       </div>
 
       <ThreatFeedExportButtons
-        keywords={keywords}
-        sources={sources}
-        startDate={startDate}
-        endDate={endDate}
-        riskFilter={riskFilter}
-      />
+        filters={{
+         keywords,
+         sources,
+         startDate,
+         endDate,
+         riskLevel: riskFilter
+       }}
+     />
+
 
 
       {loading ? (
