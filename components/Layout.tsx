@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <h2 className="text-xl font-semibold text-gray-800 dark:text-white">ThreatPulse</h2>
         <nav className="mt-4 space-y-2">
           <a href="/" className="block text-gray-600 dark:text-gray-300 hover:underline">Dashboard</a>
-          <a href="/feeds" className="block text-gray-600 dark:text-gray-300 hover:underline">Feed</a>
+          <a href="/threatfeed" className="block text-gray-600 dark:text-gray-300 hover:underline">Feed</a>
         </nav>
       </aside>
 
