@@ -16,6 +16,7 @@ export default function ThreatFeed() {
   const [threats, setThreats] = useState<ThreatItem[]>([]);
   const [keywords, setKeywords] = useState('');
   const [sources, setSources] = useState<string[]>(['CNN', 'BBC', 'Reuters']);
+  const [riskLevel, setRiskLevel] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,9 @@ export default function ThreatFeed() {
         page: String(page),
         limit: String(limit),
       });
+
       sources.forEach(src => params.append('sources', src));
+      if (riskLevel) params.append('risk', riskLevel);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
       const data = await res.json();
@@ -48,7 +51,7 @@ export default function ThreatFeed() {
 
   useEffect(() => {
     fetchThreats();
-  }, [page, sources]);
+  }, [page, sources, riskLevel]);
 
   const handleSearch = () => {
     setPage(1);
@@ -101,6 +104,25 @@ export default function ThreatFeed() {
         ))}
       </div>
 
+      <div className="mb-4 flex gap-4 text-sm text-white">
+        <label>
+          Risk Level:&nbsp;
+          <select
+            value={riskLevel}
+            onChange={(e) => {
+              setRiskLevel(e.target.value);
+              setPage(1);
+            }}
+            className="bg-gray-700 text-white px-2 py-1 rounded"
+          >
+            <option value="">All</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+      </div>
+
       <div className="text-sm text-gray-300 mb-2">
         <strong>Threat Summary (All pages):</strong><br />
         Total Fetched: {total} |
@@ -123,7 +145,8 @@ export default function ThreatFeed() {
               Source: {item.source} | Risk: <span className={
                 item.threatLevel === 'high' ? 'text-red-500' :
                 item.threatLevel === 'medium' ? 'text-yellow-400' :
-                'text-green-400'}>
+                'text-green-400'
+              }>
                 {item.threatLevel}
               </span>
             </div>
