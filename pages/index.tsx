@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import Topbar from '@/components/TopBar';
 import ThreatDashboard from '@/components/ThreatDashboard';
-import threatfeed from '@/components/threatfeed';
+import ThreatFeed from '@/components/ThreatFeed';
 
 export default function Home() {
   return (
