@@ -19,12 +19,16 @@ export default function Sidebar() {
         <h1 className="text-2xl font-bold mb-6">ThreatPulse</h1>
         <nav className="space-y-4">
                     
-          <Link href="/dashboard">
-            <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/dashboard') ? 'bg-gray-700' : ''}`}>Dashboard</span>
-          </Link>
-          <Link href="/feed">
-            <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/feed') ? 'bg-gray-700' : ''}`}>Threat Feed</span>
-          </Link>
+        <Link href="/dashboard">
+         <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/dashboard') ? 'bg-gray-700' : ''}`}>Dashboard</span>
+        </Link>
+        <Link href="/feed">
+         <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/feed') ? 'bg-gray-700' : ''}`}>Threat Feed</span>
+        </Link>
+        <Link href="/savedReports">
+         <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/savedReports') ? 'bg-gray-700' : ''}`}>Saved Reports</span>
+        </Link>
+
         </nav>
       </div>
 
