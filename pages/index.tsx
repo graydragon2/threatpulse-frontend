@@ -1,23 +1,25 @@
-// pages/index.tsx
+// pages/index.tsx (Splash screen with redirect to /dashboard)
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 
-export default function Home() {
+export default function Splash() {
   const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push('/dashboard');
-    }, 3000); // 3-second delay
+    }, 2000); // Show splash for 2 seconds
 
     return () => clearTimeout(timer);
   }, [router]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-black text-white text-center">
-      <h1 className="text-4xl font-bold mb-4">Welcome to ThreatPulse</h1>
-      <p className="text-lg text-gray-300">Your AI-Powered Threat Intelligence Dashboard</p>
-      <span className="mt-6 text-sm text-gray-500">Redirecting to dashboard...</span>
+    <div className="flex items-center justify-center h-screen bg-black text-white">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Welcome to ThreatPulse</h1>
+        <p className="text-lg">Intelligent Threat Monitoring</p>
+      </div>
     </div>
   );
 }

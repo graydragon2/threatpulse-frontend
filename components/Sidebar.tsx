@@ -18,9 +18,7 @@ export default function Sidebar() {
       <div>
         <h1 className="text-2xl font-bold mb-6">ThreatPulse</h1>
         <nav className="space-y-4">
-          <Link href="/">
-            <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/') ? 'bg-gray-700' : ''}`}>Home</span>
-          </Link>
+                    
           <Link href="/dashboard">
             <span className={`block px-4 py-2 rounded hover:bg-gray-700 ${isActive('/dashboard') ? 'bg-gray-700' : ''}`}>Dashboard</span>
           </Link>
