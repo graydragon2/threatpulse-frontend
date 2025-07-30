@@ -1,6 +1,6 @@
 // pages/threatfeed.tsx
 
-import ThreatFeed from '@/components/ThreatFeed';
+import ThreatFeed from '@/components/threatfeed';
 
 export default function ThreatFeedPage() {
   return (
