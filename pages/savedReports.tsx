@@ -6,7 +6,7 @@ import Head from 'next/head';
 export default function SavedReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -43,12 +43,36 @@ export default function SavedReports() {
       {!loading && !error && reports.length > 0 && (
         <ul className="space-y-4">
           {reports.map((report: any, index: number) => (
-            <li key={index} className="bg-gray-800 p-4 rounded shadow">
-              <p className="text-sm text-gray-400">Generated: {new Date(report.timestamp).toLocaleString()}</p>
-              <p><strong>Format:</strong> {report.format.toUpperCase()}</p>
-              <p><strong>Risk Summary:</strong> High: {report.summary.high}, Medium: {report.summary.medium}, Low: {report.summary.low}</p>
-              <p><strong>Tags:</strong> {report.tags?.join(', ') || 'None'}</p>
-              <a href={report.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline mt-2 inline-block">Download</a>
+            <li key={index} className="bg-gray-800 p-4 rounded shadow border border-gray-700">
+              <p className="text-sm text-gray-400">
+                Generated: {report.timestamp ? new Date(report.timestamp).toLocaleString() : 'Unknown'}
+              </p>
+              <p>
+                <strong>Format:</strong>{' '}
+                {(report.format || 'unknown').toUpperCase()}
+              </p>
+              <p>
+                <strong>Risk Summary:</strong>{' '}
+                High: {report.summary?.high ?? 0}, Medium: {report.summary?.medium ?? 0}, Low: {report.summary?.low ?? 0}
+              </p>
+              <p>
+                <strong>Tags:</strong>{' '}
+                {Array.isArray(report.tags) && report.tags.length > 0
+                  ? report.tags.join(', ')
+                  : 'None'}
+              </p>
+              {report.url ? (
+                <a
+                  href={report.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:underline mt-2 inline-block"
+                >
+                  Download
+                </a>
+              ) : (
+                <p className="text-yellow-300">No file available</p>
+              )}
             </li>
           ))}
         </ul>
