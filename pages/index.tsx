@@ -9,15 +9,13 @@ export default function SplashScreen() {
   const [showSecondStage, setShowSecondStage] = useState(false);
 
   useEffect(() => {
-    // Show second stage after first animation
     const stageTimer = setTimeout(() => {
       setShowSecondStage(true);
-    }, 2500); // first stage duration
+    }, 2500);
 
-    // Redirect after second stage
     const redirectTimer = setTimeout(() => {
       router.push('/dashboard');
-    }, 5000); // total duration
+    }, 5000);
 
     return () => {
       clearTimeout(stageTimer);
@@ -35,36 +33,23 @@ export default function SplashScreen() {
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 2.5 }}
-        className="text-center"
+        className="relative text-center"
       >
-        <h1 className="text-5xl font-bold tracking-widest">ThreatPulse</h1>
-        <p className="mt-2 text-gray-400">Securing Intelligence, Silently</p>
-      </motion.div>
+        <h1 className="text-5xl font-bold tracking-widest z-10 relative">ThreatPulse</h1>
+        <p className="mt-2 text-gray-400 z-10 relative">Securing Intelligence, Silently</p>
 
-      {showSecondStage && (
-        <motion.div
-          className="mt-8 flex space-x-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Bouncing Dots Animation */}
-          {[0, 1, 2].map((i) => (
-            <motion.span
-              key={i}
-              className="w-3 h-3 bg-blue-500 rounded-full"
-              animate={{
-                y: [0, -10, 0],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 1,
-                delay: i * 0.2,
-              }}
-            />
-          ))}
-        </motion.div>
-      )}
+        {/* Glowing Pulse Ring */}
+        {showSecondStage && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 w-64 h-64 rounded-full border-4 border-blue-500 opacity-60"
+            style={{ transform: 'translate(-50%, -50%)' }}
+            initial={{ scale: 1, opacity: 0.6 }}
+            animate={{ scale: [1, 1.4], opacity: [0.6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
+          />
+        )}
+      </motion.div>
     </div>
   );
 }
+
