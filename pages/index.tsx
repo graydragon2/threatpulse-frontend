@@ -10,7 +10,7 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push('/dashboard');
-    }, 2000);
+    }, 3500);
     return () => clearTimeout(timer);
   }, [router]);
 
@@ -23,7 +23,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 2.5 }}
           className="text-center"
         >
           <h1 className="text-4xl text-white font-bold">⚡ ThreatPulse</h1>
