@@ -29,36 +29,33 @@ export default function SplashScreen() {
         <title>ThreatPulse</title>
       </Head>
 
+      {/* Multiple blurred glowing ripple rings BEHIND content */}
+      {showRipples &&
+        [0, 1.5, 3].map((delay, i) => (
+          <motion.div
+            key={i}
+            className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-blue-500 opacity-30 blur-2xl pointer-events-none"
+            style={{ transform: 'translate(-50%, -50%)' }}
+            initial={{ scale: 1, opacity: 0.3 }}
+            animate={{ scale: 3, opacity: 0 }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: 'easeOut',
+              delay,
+            }}
+          />
+        ))}
+
+      {/* Main text content */}
       <motion.div
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 2.5 }}
         className="relative text-center z-10"
       >
-        <h1 className="text-5xl font-bold tracking-widest relative z-20">ThreatPulse</h1>
-        <p className="mt-2 text-gray-400 z-20">Securing Intelligence, Silently</p>
-
-        {/* Blurred Ripple Glow Rings */}
-        {showRipples && (
-          <>
-            {[0, 1.5, 3].map((delay, i) => (
-              <motion.div
-                key={i}
-                className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-blue-500 opacity-30 blur-2xl pointer-events-none"
-                style={{ transform: 'translate(-50%, -50%)' }}
-                initial={{ scale: 1, opacity: 0.3 }}
-                animate={{ scale: 2.5, opacity: 0 }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  repeatDelay: 0,
-                  ease: 'easeOut',
-                  delay,
-                }}
-              />
-            ))}
-          </>
-        )}
+        <h1 className="text-5xl font-bold tracking-widest">ThreatPulse</h1>
+        <p className="mt-2 text-gray-400">Securing Intelligence, Silently</p>
       </motion.div>
     </div>
   );
