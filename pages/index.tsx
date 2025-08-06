@@ -23,31 +23,41 @@ export default function SplashScreen() {
     };
   }, [router]);
 
+  // Multiple ripple colors
+  const rippleColors = [
+    'rgba(59, 130, 246, 0.4)', // light blue
+    'rgba(37, 99, 235, 0.35)', // medium blue
+    'rgba(29, 78, 216, 0.3)',  // deep blue
+  ];
+
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white overflow-hidden relative">
       <Head>
         <title>ThreatPulse</title>
       </Head>
 
-      {/* Multiple blurred glowing ripple rings BEHIND content */}
+      {/* Multi-shade ripple rings */}
       {showRipples &&
-        [0, 1.5, 3].map((delay, i) => (
+        rippleColors.map((color, i) => (
           <motion.div
             key={i}
-            className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full bg-blue-500 opacity-30 blur-2xl pointer-events-none"
-            style={{ transform: 'translate(-50%, -50%)' }}
-            initial={{ scale: 1, opacity: 0.3 }}
+            className="absolute top-1/2 left-1/2 w-72 h-72 rounded-full blur-2xl pointer-events-none"
+            style={{
+              backgroundColor: color,
+              transform: 'translate(-50%, -50%)',
+            }}
+            initial={{ scale: 1, opacity: 0.4 }}
             animate={{ scale: 3, opacity: 0 }}
             transition={{
-              duration: 3,
+              duration: 3.5,
               repeat: Infinity,
               ease: 'easeOut',
-              delay,
+              delay: i * 1.2, // stagger start times
             }}
           />
         ))}
 
-      {/* Main text content */}
+      {/* Main text */}
       <motion.div
         initial={{ opacity: 0, scale: 0.6 }}
         animate={{ opacity: 1, scale: 1 }}
