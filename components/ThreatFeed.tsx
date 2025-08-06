@@ -1,5 +1,6 @@
+// components/ThreatFeed.tsx
 import { useEffect, useState } from 'react';
-import ThreatFeedExportButtons from './ThreatFeedExportButtons';
+import { motion } from 'framer-motion';
 
 interface ThreatItem {
   title: string;
@@ -19,12 +20,19 @@ export default function ThreatFeed() {
   const [riskFilter, setRiskFilter] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [tags, setTags] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
 
   const limit = 10;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const fetchThreats = async () => {
     setLoading(true);
@@ -38,8 +46,6 @@ export default function ThreatFeed() {
       sources.forEach(src => params.append('sources', src));
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
-      if (tags) params.append('tags', tags);
-      if (riskFilter !== 'all') params.append('riskLevel', riskFilter);
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss?${params}`);
       const data = await res.json();
@@ -83,7 +89,12 @@ export default function ThreatFeed() {
   };
 
   return (
-    <div className="mt-6">
+    <motion.div
+      className="mt-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
+      transition={{ duration: 1 }}
+    >
       <div className="mb-4 flex gap-2 flex-wrap">
         <input
           type="text"
@@ -91,13 +102,6 @@ export default function ThreatFeed() {
           value={keywords}
           onChange={(e) => setKeywords(e.target.value)}
           className="px-3 py-1 border rounded w-full md:w-64 dark:bg-gray-700 dark:text-white"
-        />
-        <input
-          type="text"
-          placeholder="Filter by tags"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          className="px-3 py-1 border rounded dark:bg-gray-700 dark:text-white"
         />
         <input
           type="date"
@@ -161,15 +165,6 @@ export default function ThreatFeed() {
         Low Risk: <span className="text-green-400">{riskCounts.low}</span>
       </div>
 
-      <ThreatFeedExportButtons
-        keywords={keywords}
-        sources={sources}
-        startDate={startDate}
-        endDate={endDate}
-        riskFilter={riskFilter}
-        tags={tags}
-      />
-
       {loading ? (
         <p className="text-gray-400">Loading...</p>
       ) : (
@@ -186,10 +181,7 @@ export default function ThreatFeed() {
                 item.threatLevel === 'medium' ? 'text-yellow-400' :
                 'text-green-400'}>
                 {item.threatLevel}
-              </span>
-              {item.tags && item.tags.length > 0 && (
-                <> | Tags: <span className="text-purple-400">{item.tags.join(', ')}</span></>
-              )}
+              </span> | Tags: {item.tags?.join(', ') || 'None'}
             </div>
           </div>
         ))
@@ -214,8 +206,6 @@ export default function ThreatFeed() {
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
-
-
