@@ -15,7 +15,7 @@ export default function SplashScreen() {
 
     const redirectTimer = setTimeout(() => {
       router.push('/dashboard');
-    }, 5000);
+    }, 7000); // longer splash
 
     return () => {
       clearTimeout(stageTimer);
@@ -23,7 +23,6 @@ export default function SplashScreen() {
     };
   }, [router]);
 
-  // Multiple ripple colors
   const rippleColors = [
     'rgba(59, 130, 246, 0.4)', // light blue
     'rgba(37, 99, 235, 0.35)', // medium blue
@@ -46,13 +45,13 @@ export default function SplashScreen() {
               backgroundColor: color,
               transform: 'translate(-50%, -50%)',
             }}
-            initial={{ scale: 1, opacity: 0.4 }}
-            animate={{ scale: 3, opacity: 0 }}
+            initial={{ scale: 1, opacity: 0.5 }}
+            animate={{ scale: 4, opacity: 0 }}
             transition={{
-              duration: 3.5,
-              repeat: Infinity,
+              duration: 6,       // longer cycle
+              repeat: Infinity,  // keeps looping
               ease: 'easeOut',
-              delay: i * 1.2, // stagger start times
+              delay: i * 2,      // stagger start so all appear early
             }}
           />
         ))}
@@ -64,7 +63,9 @@ export default function SplashScreen() {
         transition={{ duration: 2.5 }}
         className="relative text-center z-10"
       >
-        <h1 className="text-5xl font-bold tracking-widest">ThreatPulse</h1>
+        <h1 className="text-5xl font-bold tracking-widest drop-shadow-lg">
+          ThreatPulse
+        </h1>
         <p className="mt-2 text-gray-400">Securing Intelligence, Silently</p>
       </motion.div>
     </div>
