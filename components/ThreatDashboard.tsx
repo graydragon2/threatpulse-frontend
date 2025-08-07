@@ -1,9 +1,11 @@
 // components/ThreatDashboard.tsx
 
 import { useEffect, useState } from 'react';
+import RecentActivity from '@/components/RecentActivity';
 
 export default function ThreatDashboard() {
   const [apiStatus, setApiStatus] = useState<'online' | 'offline'>('offline');
+  const [feedItems, setFeedItems] = useState([]);
 
   useEffect(() => {
     const checkHealth = async () => {
@@ -20,9 +22,28 @@ export default function ThreatDashboard() {
       }
     };
 
+    const fetchFeed = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/rss`);
+        const data = await res.json();
+        if (res.ok && data.items) {
+          setFeedItems(data.items);
+        }
+      } catch (err) {
+        console.error('Failed to fetch feed:', err);
+      }
+    };
+
     checkHealth();
-    const interval = setInterval(checkHealth, 15000);
-    return () => clearInterval(interval);
+    fetchFeed();
+
+    const healthInterval = setInterval(checkHealth, 15000);
+    const feedInterval = setInterval(fetchFeed, 30000);
+
+    return () => {
+      clearInterval(healthInterval);
+      clearInterval(feedInterval);
+    };
   }, []);
 
   return (
@@ -40,7 +61,9 @@ export default function ThreatDashboard() {
         </span>
       </div>
 
-      <p className="text-gray-300">Real-time threat data will appear here.</p>
+      <p className="text-gray-300 mb-4">Real-time threat data will appear here.</p>
+
+      <RecentActivity feedItems={feedItems} />
     </div>
   );
 }
