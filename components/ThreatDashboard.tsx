@@ -4,6 +4,7 @@ import RecentActivity from '@/components/RecentActivity';
 export default function ThreatDashboard() {
   const [apiStatus, setApiStatus] = useState<'online' | 'offline'>('offline');
   const [summary, setSummary] = useState({ high: 0, medium: 0, low: 0 });
+  const [feedItems, setFeedItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function ThreatDashboard() {
             if (item.risk === 'low') counts.low++;
           });
           setSummary(counts);
+          setFeedItems(data.items); // <-- This line is critical
         }
       } catch (err) {
         setError('Failed to load summary');
@@ -41,7 +43,6 @@ export default function ThreatDashboard() {
 
     checkHealth();
     fetchSummary();
-
     const interval = setInterval(() => {
       checkHealth();
       fetchSummary();
